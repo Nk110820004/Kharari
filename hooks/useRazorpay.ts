@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
 import { User } from '../App';
 
+// For Vite, you would define this in your .env file as VITE_RAZORPAY_TEST_KEY
 // This is a Razorpay Test Key. Replace with your actual key in a real application.
-const RAZORPAY_KEY = 'rzp_test_YourTestKey'; 
+// FIX: Cast `import.meta` to `any` to access `env` property without Vite client types.
+const RAZORPAY_KEY = (import.meta as any).env.VITE_RAZORPAY_TEST_KEY || 'rzp_test_YourTestKey'; 
 
 interface RazorpayOptions {
     key: string;
