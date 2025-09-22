@@ -1,0 +1,7 @@
+{
+  "name": "Khalari - Your AI Study Buddy",
+  "description": "A landing page for Khalari, an AI-powered study buddy designed to help you learn smarter, not harder. Explore features, pricing, and testimonials.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
