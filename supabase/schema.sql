@@ -16,9 +16,12 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles enable row level security;
-create policy if not exists "Public profiles are viewable by everyone" on public.profiles for select using (true);
-create policy if not exists "Users can insert their own profile" on public.profiles for insert with check (auth.uid() = id);
-create policy if not exists "Users can update own profile" on public.profiles for update using (auth.uid() = id);
+drop policy if exists "Public profiles are viewable by everyone" on public.profiles;
+create policy "Public profiles are viewable by everyone" on public.profiles for select using (true);
+drop policy if exists "Users can insert their own profile" on public.profiles;
+create policy "Users can insert their own profile" on public.profiles for insert with check (auth.uid() = id);
+drop policy if exists "Users can update own profile" on public.profiles;
+create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
 
 -- Study groups
 create table if not exists public.study_groups (
@@ -32,9 +35,12 @@ create table if not exists public.study_groups (
 );
 
 alter table public.study_groups enable row level security;
-create policy if not exists "Groups readable by all" on public.study_groups for select using (true);
-create policy if not exists "Authenticated can insert" on public.study_groups for insert with check (auth.role() = 'authenticated');
-create policy if not exists "Creator can update" on public.study_groups for update using (auth.uid() = created_by);
+drop policy if exists "Groups readable by all" on public.study_groups;
+create policy "Groups readable by all" on public.study_groups for select using (true);
+drop policy if exists "Authenticated can insert" on public.study_groups;
+create policy "Authenticated can insert" on public.study_groups for insert with check (auth.role() = 'authenticated');
+drop policy if exists "Creator can update" on public.study_groups;
+create policy "Creator can update" on public.study_groups for update using (auth.uid() = created_by);
 
 -- Jobs listing (sample)
 create table if not exists public.jobs (
@@ -48,8 +54,10 @@ create table if not exists public.jobs (
 );
 
 alter table public.jobs enable row level security;
-create policy if not exists "Jobs readable by all" on public.jobs for select using (true);
-create policy if not exists "Only service role can modify jobs" on public.jobs for all using (false) with check (false);
+drop policy if exists "Jobs readable by all" on public.jobs;
+create policy "Jobs readable by all" on public.jobs for select using (true);
+drop policy if exists "Only service role can modify jobs" on public.jobs;
+create policy "Only service role can modify jobs" on public.jobs for all using (false) with check (false);
 
 -- Applications
 create table if not exists public.job_applications (
@@ -60,8 +68,10 @@ create table if not exists public.job_applications (
 );
 
 alter table public.job_applications enable row level security;
-create policy if not exists "Users can see own applications" on public.job_applications for select using (auth.uid() = user_id);
-create policy if not exists "Users can insert own application" on public.job_applications for insert with check (auth.uid() = user_id);
+drop policy if exists "Users can see own applications" on public.job_applications;
+create policy "Users can see own applications" on public.job_applications for select using (auth.uid() = user_id);
+drop policy if exists "Users can insert own application" on public.job_applications;
+create policy "Users can insert own application" on public.job_applications for insert with check (auth.uid() = user_id);
 
 -- Activity log
 create table if not exists public.activity_logs (
@@ -73,7 +83,8 @@ create table if not exists public.activity_logs (
 );
 
 alter table public.activity_logs enable row level security;
-create policy if not exists "Users can manage own activity" on public.activity_logs for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users can manage own activity" on public.activity_logs;
+create policy "Users can manage own activity" on public.activity_logs for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Roadmaps and tiles
 create table if not exists public.roadmaps (
@@ -100,8 +111,10 @@ create table if not exists public.roadmap_tiles (
 
 alter table public.roadmaps enable row level security;
 alter table public.roadmap_tiles enable row level security;
-create policy if not exists "Users can manage own roadmaps" on public.roadmaps for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy if not exists "Users can manage tiles of own roadmaps" on public.roadmap_tiles for all using (exists (select 1 from public.roadmaps r where r.id = roadmap_id and r.user_id = auth.uid()));
+drop policy if exists "Users can manage own roadmaps" on public.roadmaps;
+create policy "Users can manage own roadmaps" on public.roadmaps for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users can manage tiles of own roadmaps" on public.roadmap_tiles;
+create policy "Users can manage tiles of own roadmaps" on public.roadmap_tiles for all using (exists (select 1 from public.roadmaps r where r.id = roadmap_id and r.user_id = auth.uid()));
 
 -- Enforce max active roadmaps based on streak
 create or replace function public.enforce_active_roadmaps_limit() returns trigger as $$
@@ -141,6 +154,9 @@ create table if not exists public.payments (
 );
 
 alter table public.payments enable row level security;
-create policy if not exists "Users can view own payments" on public.payments for select using (auth.uid() = user_id);
-create policy if not exists "Users can insert own payments" on public.payments for insert with check (auth.uid() = user_id);
-create policy if not exists "Users can update own payments" on public.payments for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users can view own payments" on public.payments;
+create policy "Users can view own payments" on public.payments for select using (auth.uid() = user_id);
+drop policy if exists "Users can insert own payments" on public.payments;
+create policy "Users can insert own payments" on public.payments for insert with check (auth.uid() = user_id);
+drop policy if exists "Users can update own payments" on public.payments;
+create policy "Users can update own payments" on public.payments for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
