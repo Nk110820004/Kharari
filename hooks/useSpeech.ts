@@ -69,8 +69,12 @@ export const useSpeech = () => {
         };
 
         recognition.onend = () => {
-          setIsListening(false);
-          setTranscript('');
+          if ((keepAliveRef as any).current) {
+            try { recognition.start(); } catch {}
+          } else {
+            setIsListening(false);
+            setTranscript('');
+          }
         };
 
         recognition.onerror = (event: any) => {
