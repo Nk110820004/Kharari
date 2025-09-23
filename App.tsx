@@ -114,15 +114,24 @@ const App: React.FC = () => {
     setIsLoadingRoadmap(true);
     setRoadmapError('');
     setCurrentTopic(topic);
-    setCurrentPage('roadmap'); 
+    setCurrentPage('roadmap');
+
+    const map: Record<string, 'en'|'hi'|'ta'|'ml'> = { English: 'en', Hindi: 'hi', Tamil: 'ta', Malayalam: 'ml' } as const;
+    const langCode = map[language] ?? 'en';
 
     try {
       const [data, furtherData] = await Promise.all([
-        generateRoadmap(topic),
+        generateRoadmap(topic, langCode),
         generateFurtherTopics(topic)
       ]);
       setRoadmapData(data);
       setFurtherTopics(furtherData.suggestions);
+      try {
+        const { persistRoadmap } = await import('./lib/roadmapStorage');
+        await persistRoadmap(topic, langCode, data);
+      } catch (e) {
+        console.warn('Roadmap persistence skipped:', e);
+      }
     } catch (error) {
       console.error("Failed to generate roadmap:", error);
       setRoadmapError("Sorry, we couldn't generate a roadmap for that topic. Please try another.");
