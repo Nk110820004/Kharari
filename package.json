@@ -9,41 +9,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "^1.20.0",
-    "@number-flow/react": "^0.5.10",
+    "lucide-react": "^0.544.0",
+    "react-dom": "^19.1.1",
+    "react": "^19.1.1",
+    "three": "^0.180.0",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
     "framer-motion": "^11.2.12",
+    "@number-flow/react": "^0.5.10",
+    "unicornstudio-react": "^1.4.31",
     "gsap": "^3.13.0",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^3.0.3",
-    "lucide-react": "^0.544.0",
+    "@google/genai": "^1.20.0",
     "ogl": "^0.0.109",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "three": "^0.180.0",
-    "unicornstudio-react": "^1.4.31"
+    "jspdf": "^2.5.1",
+    "html2canvas": "^1.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.3",
+    "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
-    "vite": "^6.3.6"
-  },
-  "description": "<div align=\"center\">\r <img width=\"1200\" height=\"475\" alt=\"GHBanner\" src=\"https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6\" />\r </div>",
-  "main": "index.js",
-  "directories": {
-    "lib": "lib"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Nk110820004/Kharari.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Nk110820004/Kharari/issues"
-  },
-  "homepage": "https://github.com/Nk110820004/Kharari#readme"
+    "vite": "^6.2.0"
+  }
 }

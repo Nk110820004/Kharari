@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { BookOpen, User, Briefcase, Users, Flame } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
@@ -24,7 +24,6 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStartedClick, onProfileClick, onCareerClick, onCommunityClick, isLoggedIn, user }) => {
-  const mainRef = useRef(null);
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -34,13 +33,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStartedClick, onProfileC
         smooth: 1,
         effects: true,
       });
-    }, mainRef);
+    });
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div ref={mainRef}>
+    <div>
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-sm">
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
