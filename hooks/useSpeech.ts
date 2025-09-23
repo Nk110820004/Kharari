@@ -91,7 +91,7 @@ export const useSpeech = () => {
     }
   }, [checkPermission]);
 
-  const startListening = () => {
+  const startListening = () => { (keepAliveRef as any).current = true;
     if (permissionStatus !== 'granted') {
         console.warn("Microphone permission not granted.");
         checkPermission(); // Re-check permission in case it was just granted
