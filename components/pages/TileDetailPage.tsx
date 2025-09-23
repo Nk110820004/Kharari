@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { RoadmapTile } from '../../lib/gemini';
 import { ArrowLeft, Book, Code, Youtube, FileQuestion } from 'lucide-react';
-import { fetchYouTubeVideos, YouTubeVideo } from '../../lib/youtube';
+import { fetchYouTubeVideos, type YouTubeVideo } from '../../lib/youtube';
 
 interface TileDetailPageProps {
   tile: RoadmapTile;
@@ -28,7 +28,9 @@ const TileDetailPage: React.FC<TileDetailPageProps> = ({ tile, tileNumber, onTak
   useEffect(() => {
     const getVideos = async () => {
       setIsLoadingVideos(true);
-      const fetchedVideos = await fetchYouTubeVideos(tile.youtubeSearchQuery);
+      const { default: i18n } = await import('../../i18n');
+      const lang = i18n.language || 'en';
+      const fetchedVideos = await fetchYouTubeVideos(tile.youtubeSearchQuery, lang);
       setVideos(fetchedVideos);
       setIsLoadingVideos(false);
     };

@@ -76,6 +76,45 @@ const App: React.FC = () => {
   const modalRoot = document.getElementById('modal-root');
 
   useEffect(() => {
+    (async () => {
+      const { supabase } = await import('./lib/supabaseClient');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && !user) {
+        setIsLoggedIn(true);
+        setUser(prev => prev ?? {
+          name: session.user.user_metadata?.full_name || session.user.email || 'User',
+          bio: 'Lifelong learner exploring the world of code and design.',
+          language: 'English',
+          accountCreated: new Date(),
+          diamonds: 0,
+          currentStreak: 0,
+          highestStreak: 0,
+          lastActivityDate: null,
+          miniGameAttempts: 0,
+          phone: session.user.phone || undefined,
+        });
+      }
+      supabase.auth.onAuthStateChange((_event, sess) => {
+        if (sess) {
+          setIsLoggedIn(true);
+          setUser(prev => prev ?? {
+            name: sess.user.user_metadata?.full_name || sess.user.email || 'User',
+            bio: 'Lifelong learner exploring the world of code and design.',
+            language: 'English',
+            accountCreated: new Date(),
+            diamonds: 0,
+            currentStreak: 0,
+            highestStreak: 0,
+            lastActivityDate: null,
+            miniGameAttempts: 0,
+            phone: sess.user.phone || undefined,
+          });
+        }
+      });
+    })();
+  }, []);
+
+  useEffect(() => {
     if (roadmapData) {
       setCompletedTiles(new Array(roadmapData.tiles.length).fill(false));
       // Reset mini-game attempts for new roadmap
@@ -114,15 +153,24 @@ const App: React.FC = () => {
     setIsLoadingRoadmap(true);
     setRoadmapError('');
     setCurrentTopic(topic);
-    setCurrentPage('roadmap'); 
+    setCurrentPage('roadmap');
+
+    const map: Record<string, 'en'|'hi'|'ta'|'ml'> = { English: 'en', Hindi: 'hi', Tamil: 'ta', Malayalam: 'ml' } as const;
+    const langCode = map[language] ?? 'en';
 
     try {
       const [data, furtherData] = await Promise.all([
-        generateRoadmap(topic),
+        generateRoadmap(topic, langCode),
         generateFurtherTopics(topic)
       ]);
       setRoadmapData(data);
       setFurtherTopics(furtherData.suggestions);
+      try {
+        const { persistRoadmap } = await import('./lib/roadmapStorage');
+        await persistRoadmap(topic, langCode, data);
+      } catch (e) {
+        console.warn('Roadmap persistence skipped:', e);
+      }
     } catch (error) {
       console.error("Failed to generate roadmap:", error);
       setRoadmapError("Sorry, we couldn't generate a roadmap for that topic. Please try another.");

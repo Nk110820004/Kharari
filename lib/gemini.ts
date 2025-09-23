@@ -146,8 +146,10 @@ const enhancedResumeSchema = {
 
 // --- API Functions ---
 
-export const generateRoadmap = async (topic: string): Promise<Roadmap> => {
-  const prompt = `Create a detailed, step-by-step learning roadmap for a beginner on the topic of "${topic}". The target audience is between 18 and 35 years old, so the tone should be encouraging, modern, and clear. Break down the topic into 5-7 logical, sequential modules or "tiles". For each tile, provide a clear title, a one-sentence description, a list of 3-5 key concepts, and a concise, effective YouTube search query to find tutorial videos for the concepts. Ensure the path flows logically from fundamental principles to more advanced applications.`;
+export const generateRoadmap = async (topic: string, lang: 'en'|'hi'|'ta'|'ml' = 'en'): Promise<Roadmap> => {
+  const names: Record<string,string> = { en: 'English', hi: 'Hindi', ta: 'Tamil', ml: 'Malayalam' };
+  const langInstruction = lang === 'en' ? 'Write in English.' : `Write all titles, descriptions, and YouTube search queries in ${names[lang]}.`;
+  const prompt = `Create a detailed, step-by-step learning roadmap for a beginner on the topic of "${topic}". The target audience is between 18 and 35 years old, so the tone should be encouraging, modern, and clear. Break down the topic into 5-7 logical, sequential modules or "tiles". For each tile, provide a clear title, a one-sentence description, a list of 3-5 key concepts, and a concise, effective YouTube search query to find tutorial videos for the concepts. Ensure the path flows logically from fundamental principles to more advanced applications. ${langInstruction}`;
 
   try {
     const response = await ai.models.generateContent({

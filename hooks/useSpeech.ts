@@ -14,6 +14,7 @@ export const useSpeech = () => {
   // FIX: Use `any` for the ref type since `SpeechRecognition` is not a standard
   // type and the constant on line 4 shadows any potential global type definition.
   const recognitionRef = useRef<any | null>(null);
+  const keepAliveRef = useRef(false);
 
   const checkPermission = useCallback(async () => {
     if (!navigator.permissions) {
@@ -68,8 +69,12 @@ export const useSpeech = () => {
         };
 
         recognition.onend = () => {
-          setIsListening(false);
-          setTranscript('');
+          if ((keepAliveRef as any).current) {
+            try { recognition.start(); } catch {}
+          } else {
+            setIsListening(false);
+            setTranscript('');
+          }
         };
 
         recognition.onerror = (event: any) => {
@@ -86,7 +91,7 @@ export const useSpeech = () => {
     }
   }, [checkPermission]);
 
-  const startListening = () => {
+  const startListening = () => { (keepAliveRef as any).current = true;
     if (permissionStatus !== 'granted') {
         console.warn("Microphone permission not granted.");
         checkPermission(); // Re-check permission in case it was just granted
@@ -106,7 +111,7 @@ export const useSpeech = () => {
     }
   };
 
-  const stopListening = () => {
+  const stopListening = () => { (keepAliveRef as any).current = false;
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
       setIsListening(false);

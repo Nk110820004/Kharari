@@ -74,8 +74,15 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onClose, onComplete
     handleNextStep();
   }
 
-  const handleLanguageSelect = (lang: string) => {
+  const handleLanguageSelect = async (lang: string) => {
     setLanguage(lang);
+    try {
+      const { default: i18n } = await import('../../i18n');
+      const map: Record<string, 'en' | 'hi' | 'ta' | 'ml'> = {
+        English: 'en', Hindi: 'hi', Tamil: 'ta', Malayalam: 'ml'
+      } as const;
+      await i18n.changeLanguage(map[lang] ?? 'en');
+    } catch {}
     handleNextStep();
   };
 

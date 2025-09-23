@@ -62,8 +62,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, activityLog, onBack, on
   const [bio, setBio] = useState(user.bio);
   const [language, setLanguage] = useState(user.language);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     onUpdateProfile({ ...user, bio, language });
+    try {
+      const { default: i18n } = await import('../../i18n');
+      const map: Record<string, 'en' | 'hi' | 'ta' | 'ml'> = {
+        English: 'en', Hindi: 'hi', Tamil: 'ta', Malayalam: 'ml'
+      } as const;
+      await i18n.changeLanguage(map[language] ?? 'en');
+    } catch {}
     setIsEditing(false);
   };
 

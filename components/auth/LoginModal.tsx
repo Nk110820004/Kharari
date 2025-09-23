@@ -42,10 +42,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onSuccess }) => {
             </p>
             
             <button
-              onClick={onSuccess}
+              onClick={async () => {
+                const { supabase } = await import('../../lib/supabaseClient');
+                await supabase.auth.signInWithOAuth({ provider: 'google' });
+              }}
               className="w-full bg-white text-black font-semibold py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-neutral-200 transition-colors"
             >
-              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.3 1.62-3.87 1.62-4.7 0-8.48-3.78-8.48-8.48s3.78-8.48 8.48-8.48c2.69 0 4.38 1.02 5.39 1.98l2.6-2.58C18.94 1.22 16.27 0 12.48 0 5.88 0 .04 5.88.04 12.48s5.84 12.48 12.44 12.48c3.41 0 6.08-1.16 8.16-3.25 2.16-2.16 2.82-5.21 2.82-8.16v-1.62h-11z"/></svg>
+              <svg className="h-5 w-5" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path fill="#4285F4" d="M533.5 278.4c0-18.4-1.7-36.2-5-53.3H272v100.9h146.9c-6.4 34.6-25.2 64-53.7 83.6v69.2h86.7c50.7-46.7 81.6-200.4z"/>
+                <path fill="#34A853" d="M272 544.3c72.9 0 134.1-24.1 178.8-65.4l-86.7-69.2c-24.1 16.2-55 25.8-92.1 25.8-70.7 0-130.6-47.7-152-111.7H32.5v70.2c44.5 88.3 135.6 150.3 239.5 150.3z"/>
+                <path fill="#FBBC05" d="M120 323.8c-10.4-30.9-10.4-64.2 0-95.2V158.4H32.5c-46.8 93.6-46.8 200.8 0 299.4l87.5-134z"/>
+                <path fill="#EA4335" d="M272 107.7c39.6-.6 77.8 14.5 106.9 42.6l80.1-80.1C424 24.2 351.1-1.1 272 0 168.1 0 77 62 32.5 150.3l87.5 70.2C141.4 156.5 201.3 108.7 272 107.7z"/>
+              </svg>
               Continue with Google
             </button>
 
@@ -68,7 +76,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose, onSuccess }) => {
 
 
             {activeTab === 'email' && (
-                <form onSubmit={(e) => { e.preventDefault(); onSuccess(); }} className="space-y-4">
+                <form onSubmit={async (e) => { e.preventDefault();
+                    const email = (e.currentTarget.querySelector('input[type=email]') as HTMLInputElement)?.value;
+                    const password = (e.currentTarget.querySelector('input[type=password]') as HTMLInputElement)?.value;
+                    const { supabase } = await import('../../lib/supabaseClient');
+                    if (authMode === 'signup') {
+                      const { error } = await supabase.auth.signUp({ email, password });
+                      if (error) { alert(error.message); return; }
+                    } else {
+                      const { error } = await supabase.auth.signInWithPassword({ email, password });
+                      if (error) { alert(error.message); return; }
+                    }
+                    onSuccess();
+                  }} className="space-y-4">
                     {authMode === 'signup' && (
                       <div className="relative">
                         <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400"/>

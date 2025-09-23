@@ -22,9 +22,19 @@ const VoiceOrb: React.FC<VoiceOrbProps> = ({ onClose }) => {
     permissionStatus
   } = useSpeech();
   
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'model'; content: string }>>([
-      { role: 'model', content: "Hi! I'm Kael, your AI study buddy. How can I help you learn today?" }
-  ]);
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'model'; content: string }>>([]);
+  const [threadId, setThreadId] = useState<string | null>(null);
+  useEffect(() => { (async () => {
+    try {
+      const { getOrCreateThread, fetchMessages } = await import('../../lib/chatStorage');
+      const id = await getOrCreateThread();
+      if (id) {
+        setThreadId(id);
+        const msgs = await fetchMessages(id);
+        setMessages(msgs.length ? msgs : [{ role: 'model', content: "Hi! I'm Kael, your AI study buddy. How can I help you learn today?" }]);
+      }
+    } catch {}
+  })(); }, []);
   const [inputText, setInputText] = useState('');
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -39,6 +49,7 @@ const VoiceOrb: React.FC<VoiceOrbProps> = ({ onClose }) => {
 
     const userMessage = { role: 'user' as const, content: messageText };
     setMessages(prev => [...prev, userMessage]);
+    try { if (threadId) { const { appendMessage } = await import('../../lib/chatStorage'); await appendMessage(threadId, 'user', messageText); } } catch {}
     
     const chatHistory: ChatMessage[] = [...messages, userMessage].map(msg => ({
       role: msg.role,
@@ -50,6 +61,7 @@ const VoiceOrb: React.FC<VoiceOrbProps> = ({ onClose }) => {
       const response = await generateChatResponse(chatHistory);
       const aiMessage = { role: 'model' as const, content: response };
       setMessages(prev => [...prev, aiMessage]);
+      try { if (threadId) { const { appendMessage } = await import('../../lib/chatStorage'); await appendMessage(threadId, 'model', response); } } catch {}
       if (!isMuted) {
         speak({ text: response });
       }
@@ -117,8 +129,8 @@ const VoiceOrb: React.FC<VoiceOrbProps> = ({ onClose }) => {
                 {messages.map((msg, index) => (
                     <div key={index} className={cn("flex gap-3", msg.role === 'user' ? 'justify-end' : 'justify-start')}>
                         {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-blue-500/20 flex-shrink-0 self-start"></div>}
-                        <div className={cn("max-w-md p-3 rounded-xl", msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-neutral-800 text-neutral-200')}>
-                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                        <div className={cn("max-w-md p-3 rounded-xl break-words", msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-neutral-800 text-neutral-200')}>
+                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                         </div>
                     </div>
                 ))}
