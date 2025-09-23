@@ -11,6 +11,7 @@ import TestimonialsSection from '../ui/testimonials-section';
 import BlurText from '../ui/blur-text';
 import { InteractiveHoverButton } from '../ui/interactive-hover-button';
 import { User as UserType } from '../../App';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
@@ -51,6 +52,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStartedClick, onProfileC
               <a href="#features" className="hover:text-blue-400 transition-colors">Features</a>
               <a href="#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
               <a href="#testimonials" className="hover:text-blue-400 transition-colors">Testimonials</a>
+            </div>
+            <div className="hidden md:flex items-center">
+              <LanguageSwitcher />
             </div>
             {isLoggedIn && user ? (
                <div className="flex items-center gap-4">
