@@ -85,6 +85,8 @@ create table if not exists public.roadmaps (
   created_at timestamp with time zone default now()
 );
 
+create index if not exists idx_roadmaps_user_status on public.roadmaps(user_id, status);
+
 create table if not exists public.roadmap_tiles (
   id uuid primary key default gen_random_uuid(),
   roadmap_id uuid references public.roadmaps on delete cascade,
@@ -124,3 +126,21 @@ end; $$ language plpgsql security definer;
 drop trigger if exists trg_enforce_active_roadmaps on public.roadmaps;
 create trigger trg_enforce_active_roadmaps before insert or update on public.roadmaps
 for each row execute function public.enforce_active_roadmaps_limit();
+
+-- Payments (Razorpay)
+create table if not exists public.payments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete set null,
+  amount integer not null,
+  currency text not null default 'INR',
+  status text not null default 'created' check (status in ('created','paid','failed')),
+  provider_payment_id text,
+  provider_order_id text,
+  provider_signature text,
+  created_at timestamp with time zone default now()
+);
+
+alter table public.payments enable row level security;
+create policy if not exists "Users can view own payments" on public.payments for select using (auth.uid() = user_id);
+create policy if not exists "Users can insert own payments" on public.payments for insert with check (auth.uid() = user_id);
+create policy if not exists "Users can update own payments" on public.payments for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
