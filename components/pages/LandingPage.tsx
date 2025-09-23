@@ -29,6 +29,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStartedClick, onProfileC
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       ScrollSmoother.create({
+        wrapper: '#smooth-wrapper',
+        content: '#smooth-content',
         smooth: 1,
         effects: true,
       });

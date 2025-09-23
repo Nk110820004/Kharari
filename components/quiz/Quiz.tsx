@@ -13,7 +13,8 @@ const Quiz: React.FC<QuizProps> = ({ quizData, onSubmit }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>(new Array(quizData.questions.length).fill(null));
   const [timeLeft, setTimeLeft] = useState(25);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // FIX: Use `number` for the timer ref type, as `setInterval` in browsers returns a number.
+  const timerRef = useRef<number | null>(null);
 
   const handleNext = () => {
     if (currentQuestionIndex < quizData.questions.length - 1) {
