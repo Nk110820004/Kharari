@@ -14,6 +14,7 @@ export const useSpeech = () => {
   // FIX: Use `any` for the ref type since `SpeechRecognition` is not a standard
   // type and the constant on line 4 shadows any potential global type definition.
   const recognitionRef = useRef<any | null>(null);
+  const keepAliveRef = useRef(false);
 
   const checkPermission = useCallback(async () => {
     if (!navigator.permissions) {
