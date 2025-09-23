@@ -111,7 +111,7 @@ export const useSpeech = () => {
     }
   };
 
-  const stopListening = () => {
+  const stopListening = () => { (keepAliveRef as any).current = false;
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
       setIsListening(false);
