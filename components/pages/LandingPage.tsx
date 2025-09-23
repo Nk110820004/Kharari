@@ -100,6 +100,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStartedClick, onProfileC
               delay={15}
             />
             <InteractiveHoverButton onClick={onGetStartedClick} text="Start for Free" className="mt-8 w-56 h-14 text-lg bg-neutral-900 border-neutral-700 text-white" />
+            <div className="mt-4">
+              {/* i18n demo */}
+              <Home />
+            </div>
           </div>
         </section>
 
