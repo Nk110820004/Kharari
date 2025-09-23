@@ -12,6 +12,7 @@ import BlurText from '../ui/blur-text';
 import { InteractiveHoverButton } from '../ui/interactive-hover-button';
 import { User as UserType } from '../../App';
 import LanguageSwitcher from '../LanguageSwitcher';
+import Home from '../Home';
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
