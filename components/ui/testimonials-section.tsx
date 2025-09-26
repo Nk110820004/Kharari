@@ -6,7 +6,7 @@ import DotGrid from './dot-grid';
 
 const testimonials = [
   {
-    text: "Khalari revolutionized my study habits. The AI tutor is incredibly helpful for complex subjects like calculus.",
+    text: "Kalari revolutionized my study habits. The AI tutor is incredibly helpful for complex subjects like calculus.",
     image: "https://picsum.photos/id/1005/40/40",
     name: "Briana Patton",
     role: "University Student",
@@ -48,7 +48,7 @@ const testimonials = [
     role: "Law Student",
   },
   {
-    text: "Khalari delivered a solution that exceeded my expectations. It's more than an app; it's a true study partner.",
+    text: "Kalari delivered a solution that exceeded my expectations. It's more than an app; it's a true study partner.",
     image: "https://picsum.photos/id/40/40/40",
     name: "Sana Sheikh",
     role: "Economics Major",
@@ -95,7 +95,7 @@ const TestimonialsSection = () => {
           />
           <BlurText
             as="p"
-            text="See what our customers have to say about their experience with Khalari."
+            text="See what our customers have to say about their experience with Kalari."
             className="text-center mt-5 text-lg text-gray-300"
             animateBy="words"
             delay={15}

@@ -42,7 +42,7 @@ const RoadmapPage: React.FC<RoadmapPageProps> = ({
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
           <button onClick={onGoHome} className="flex items-center gap-2">
             <BookOpen className="h-8 w-8 text-blue-500" />
-            <h1 className="text-2xl font-bold text-white">Khalari</h1>
+            <h1 className="text-2xl font-bold text-white">Kalari</h1>
           </button>
           <div className="flex items-center gap-4">
              {user && (

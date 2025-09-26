@@ -44,7 +44,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStartedClick, onProfileC
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <BookOpen className="h-8 w-8 text-blue-500" />
-            <h1 className="text-2xl font-bold text-white">Khalari</h1>
+            <h1 className="text-2xl font-bold text-white">Kalari</h1>
           </div>
           <div className="flex items-center space-x-6">
             <div className="hidden md:flex items-center space-x-6">
@@ -83,7 +83,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStartedClick, onProfileC
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center bg-black/30">
             <BlurText
               as="h1"
-              text="Study Smarter with Khalari"
+              text="Study Smarter with Kalari"
               className="text-5xl md:text-7xl font-extrabold tracking-tighter text-white"
               animateBy="words"
               delay={50}
@@ -113,7 +113,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStartedClick, onProfileC
 
         <footer className="bg-neutral-900 border-t border-neutral-800 py-8">
           <div className="container mx-auto px-6 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} Khalari. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Kalari. All rights reserved.</p>
             <p className="text-sm mt-2">The ultimate AI study companion.</p>
           </div>
         </footer>

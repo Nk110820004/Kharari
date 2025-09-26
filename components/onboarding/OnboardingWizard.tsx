@@ -129,7 +129,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onClose, onComplete
         return (
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-2">Choose Your Language</h2>
-            <p className="text-neutral-400 mb-8">Select the language you'd like to experience Khalari in.</p>
+            <p className="text-neutral-400 mb-8">Select the language you'd like to experience Kalari in.</p>
             <div className="max-h-80 overflow-y-auto pr-2 grid grid-cols-2 gap-3 text-left">
               {languages.map(lang => (
                 <button 
