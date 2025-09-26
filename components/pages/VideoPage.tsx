@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReactPlayer from 'react-player';
+import ReactPlayer from 'react-player/youtube';
 import { ArrowLeft, Loader, Mic, FileQuestion, Lightbulb } from 'lucide-react';
 import { fetchTranscript } from '../../lib/youtube';
 import { summarizeTranscript } from '../../lib/gemini';
