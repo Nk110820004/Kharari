@@ -149,7 +149,7 @@ export function ShaderAnimationSection() {
         />
         <BlurText
           as="p"
-          text="Engage with complex topics like never before through interactive and dynamic visualizations. Khalari brings concepts to life."
+            text="Engage with complex topics like never before through interactive and dynamic visualizations. Kalari brings concepts to life."
           className="mt-4 text-lg text-gray-300 max-w-xl"
           animateBy="words"
           delay={15}

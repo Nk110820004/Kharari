@@ -251,7 +251,7 @@ export const generateQuiz = async (tile: RoadmapTile): Promise<Quiz> => {
 };
 
 export const generateChatResponse = async (history: ChatMessage[]): Promise<string> => {
-  const systemInstruction = `You are Kael, a friendly, encouraging, and helpful female AI study assistant for the platform Khalari.
+  const systemInstruction = `You are Kael, a friendly, encouraging, and helpful female AI study assistant for the platform Kalari.
 - Keep your responses concise, conversational, and easy to understand.
 - Always detect the language of the user's very last message and respond in that same language.
 - Your primary goal is to help users with their learning questions. You can answer questions about study topics, explain concepts, or give learning advice.
@@ -325,5 +325,26 @@ Feedback to incorporate:
     } catch (error) {
         console.error("Error enhancing resume with Gemini:", error);
         throw new Error("Failed to enhance resume.");
+    }
+};
+
+export const summarizeTranscript = async (transcript: string): Promise<string> => {
+    const prompt = `Summarize the following video transcript into a few key points. The summary should be concise and easy to understand for a beginner.
+
+Transcript:
+---
+${transcript}
+---
+
+Summary:`;
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error summarizing transcript with Gemini:", error);
+        throw new Error("Failed to summarize transcript.");
     }
 };

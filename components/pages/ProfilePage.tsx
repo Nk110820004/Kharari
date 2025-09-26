@@ -176,7 +176,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, activityLog, onBack, on
                             ))}
                         </div>
                     ) : (
-                        <p className="text-neutral-400 text-sm">You haven't applied for any jobs yet through Khalari.</p>
+                        <p className="text-neutral-400 text-sm">You haven't applied for any jobs yet through Kalari.</p>
                     )}
                 </div>
                  <DiamondStore onBuyDiamonds={onBuyDiamonds} user={user} />

@@ -51,7 +51,7 @@ export const useRazorpay = (user: User | null) => {
             key: RAZORPAY_KEY,
             amount: amount,
             currency: 'INR',
-            name: 'Khalari',
+            name: 'Kalari',
             description: name,
             image: '/vite.svg',
             handler: (response) => {
@@ -67,7 +67,7 @@ export const useRazorpay = (user: User | null) => {
                 contact: user?.phone,
             },
             notes: {
-                address: 'Khalari Learning Corp.',
+                address: 'Kalari Learning Corp.',
             },
             theme: {
                 color: '#2563EB', // Blue-600

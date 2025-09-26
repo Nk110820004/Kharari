@@ -67,3 +67,14 @@ export const fetchYouTubeVideos = async (query: string, lang: string = 'en'): Pr
     } as YouTubeVideo;
   });
 };
+
+export const fetchTranscript = async (videoId: string) => {
+  try {
+    const { YoutubeTranscript } = await import('youtube-transcript');
+    const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+    return transcript.map(t => t.text).join(' ');
+  } catch (error) {
+    console.error('Failed to fetch transcript:', error);
+    return 'Transcript not available for this video.';
+  }
+};

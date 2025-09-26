@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { RoadmapTile } from '../../lib/gemini';
 import { ArrowLeft, Book, Code, Youtube, FileQuestion } from 'lucide-react';
 import { fetchYouTubeVideos, type YouTubeVideo } from '../../lib/youtube';
+import { useNavigate } from 'react-router-dom';
 
 interface TileDetailPageProps {
   tile: RoadmapTile;
@@ -15,6 +16,7 @@ interface TileDetailPageProps {
 const TileDetailPage: React.FC<TileDetailPageProps> = ({ tile, tileNumber, onTakeQuiz, onBackToRoadmap, onLogTime }) => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [isLoadingVideos, setIsLoadingVideos] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const startTime = Date.now();
@@ -36,6 +38,10 @@ const TileDetailPage: React.FC<TileDetailPageProps> = ({ tile, tileNumber, onTak
     };
     getVideos();
   }, [tile.youtubeSearchQuery]);
+
+  const handleVideoSelect = (videoId: string) => {
+    navigate(`/video/${videoId}`);
+  };
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
@@ -106,14 +112,18 @@ const TileDetailPage: React.FC<TileDetailPageProps> = ({ tile, tileNumber, onTak
                 ))
               ) : (
                 videos.map((video) => (
-                  <a key={video.id} href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer" className="flex gap-4 bg-neutral-900 border border-transparent hover:border-blue-500 p-3 rounded-lg transition-colors group">
+                  <button
+                    key={video.id}
+                    onClick={() => handleVideoSelect(video.id)}
+                    className="w-full text-left flex gap-4 bg-neutral-900 border border-transparent hover:border-blue-500 p-3 rounded-lg transition-colors group"
+                  >
                     <img src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`} alt={video.title} className="w-40 h-24 object-cover rounded-lg flex-shrink-0" />
                     <div className="flex-grow">
                       <h3 className="text-md font-semibold text-neutral-100 group-hover:text-blue-400 transition-colors">{video.title}</h3>
                       <p className="text-sm text-neutral-400 mt-1">{video.channel}</p>
                       <p className="text-xs text-neutral-500 mt-2">{video.views} &bull; {video.duration}</p>
                     </div>
-                  </a>
+                  </button>
                 ))
               )}
             </div>

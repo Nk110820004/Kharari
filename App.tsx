@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import LandingPage from './components/pages/LandingPage';
 import RoadmapPage from './components/pages/RoadmapPage';
 import LoginModal from './components/auth/LoginModal';
 import OnboardingWizard from './components/onboarding/OnboardingWizard';
-import { generateRoadmap, generateFurtherTopics, Roadmap, RoadmapTile } from './lib/gemini';
+import { generateRoadmap, generateFurtherTopics, Roadmap } from './lib/gemini';
 import TileDetailPage from './components/pages/TileDetailPage';
 import QuizPage from './components/pages/QuizPage';
 import ProfilePage from './components/pages/ProfilePage';
@@ -15,8 +16,8 @@ import { initialJobs, Job } from './data/jobs';
 import CommunityPage from './components/pages/CommunityPage';
 import { initialGroups, StudyGroup } from './data/groups';
 import MemoryGame from './components/minigame/MemoryGame';
-
-export type Page = 'landing' | 'roadmap' | 'tileDetail' | 'quiz' | 'profile' | 'career' | 'community';
+import VideoPage from './components/pages/VideoPage';
+import { getUserProfile, updateUserProfile, logUserActivity } from './lib/userStorage';
 
 export interface User {
   name: string;
@@ -42,7 +43,6 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentPage, setCurrentPage] = useState<Page>('landing');
   
   const [currentTopic, setCurrentTopic] = useState('');
   const [roadmapData, setRoadmapData] = useState<Roadmap | null>(null);
@@ -50,74 +50,99 @@ const App: React.FC = () => {
   const [isLoadingRoadmap, setIsLoadingRoadmap] = useState(false);
   const [roadmapError, setRoadmapError] = useState('');
 
-  // Learning flow state
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   
-  // User Profile and Activity State
   const [user, setUser] = useState<User | null>(null);
   const [activityLog, setActivityLog] = useState<ActivityLog[]>([]);
   const [completedTiles, setCompletedTiles] = useState<boolean[]>([]);
   
-  // AI Assistant State
   const [showVoiceOrb, setShowVoiceOrb] = useState(false);
   
-  // Career Hub State
   const [availableJobs, setAvailableJobs] = useState<Job[]>(initialJobs);
   const [appliedJobs, setAppliedJobs] = useState<Job[]>([]);
 
-  // Community Hub State
   const [allGroups, setAllGroups] = useState<StudyGroup[]>(initialGroups);
   const [joinedGroupIds, setJoinedGroupIds] = useState<Set<string>>(new Set());
   
-  // Gamification state
   const [showMiniGame, setShowMiniGame] = useState(false);
 
-  // Portal root for modals
   const modalRoot = document.getElementById('modal-root');
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     (async () => {
       const { supabase } = await import('./lib/supabaseClient');
+      const { getRoadmap } = await import('./lib/roadmapStorage');
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session && !user) {
         setIsLoggedIn(true);
-        setUser(prev => prev ?? {
-          name: session.user.user_metadata?.full_name || session.user.email || 'User',
-          bio: 'Lifelong learner exploring the world of code and design.',
-          language: 'English',
-          accountCreated: new Date(),
-          diamonds: 0,
-          currentStreak: 0,
-          highestStreak: 0,
-          lastActivityDate: null,
-          miniGameAttempts: 0,
-          phone: session.user.phone || undefined,
-        });
+        const userProfile = await getUserProfile();
+        if (userProfile) {
+          setUser(userProfile);
+        } else {
+           setUser(prev => prev ?? {
+              name: session.user.user_metadata?.full_name || session.user.email || 'User',
+              bio: 'Lifelong learner exploring the world of code and design.',
+              language: 'English',
+              accountCreated: new Date(),
+              diamonds: 0,
+              currentStreak: 0,
+              highestStreak: 0,
+              lastActivityDate: null,
+              miniGameAttempts: 0,
+              phone: session.user.phone || undefined,
+            });
+        }
+
+        const existingRoadmap = await getRoadmap();
+        if (existingRoadmap) {
+          setRoadmapData(existingRoadmap.roadmap);
+          setCurrentTopic(existingRoadmap.topic);
+          setCompletedTiles(existingRoadmap.completedTiles);
+          navigate('/roadmap');
+        }
       }
-      supabase.auth.onAuthStateChange((_event, sess) => {
+
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, sess) => {
         if (sess) {
           setIsLoggedIn(true);
-          setUser(prev => prev ?? {
-            name: sess.user.user_metadata?.full_name || sess.user.email || 'User',
-            bio: 'Lifelong learner exploring the world of code and design.',
-            language: 'English',
-            accountCreated: new Date(),
-            diamonds: 0,
-            currentStreak: 0,
-            highestStreak: 0,
-            lastActivityDate: null,
-            miniGameAttempts: 0,
-            phone: sess.user.phone || undefined,
-          });
+          const userProfile = await getUserProfile();
+          if (userProfile) {
+            setUser(userProfile);
+          } else {
+             setUser(prev => prev ?? {
+              name: sess.user.user_metadata?.full_name || sess.user.email || 'User',
+              bio: 'Lifelong learner exploring the world of code and design.',
+              language: 'English',
+              accountCreated: new Date(),
+              diamonds: 0,
+              currentStreak: 0,
+              highestStreak: 0,
+              lastActivityDate: null,
+              miniGameAttempts: 0,
+              phone: sess.user.phone || undefined,
+            });
+          }
+        } else {
+          setIsLoggedIn(false);
+          setUser(null);
+          setRoadmapData(null);
+          setCurrentTopic('');
+          navigate('/');
         }
       });
+      return () => {
+        authListener?.subscription.unsubscribe();
+      };
     })();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (roadmapData) {
       setCompletedTiles(new Array(roadmapData.tiles.length).fill(false));
-      // Reset mini-game attempts for new roadmap
       if (user) {
         setUser(prevUser => prevUser ? { ...prevUser, miniGameAttempts: 0 } : null);
       }
@@ -128,32 +153,31 @@ const App: React.FC = () => {
     setShowAuthModal(true);
   };
 
-  const handleAuthSuccess = () => {
+  const handleAuthSuccess = async () => {
     setShowAuthModal(false);
-    setShowOnboarding(true);
-    setIsLoggedIn(true);
-    setUser({
-      name: 'New User',
-      bio: 'Lifelong learner exploring the world of code and design.',
-      language: 'English',
-      accountCreated: new Date(),
-      diamonds: 0,
-      currentStreak: 0,
-      highestStreak: 0,
-      lastActivityDate: null,
-      miniGameAttempts: 0,
-    });
+    const { getRoadmap } = await import('./lib/roadmapStorage');
+    const existingRoadmap = await getRoadmap();
+    if (existingRoadmap) {
+      setRoadmapData(existingRoadmap.roadmap);
+      setCurrentTopic(existingRoadmap.topic);
+      setCompletedTiles(existingRoadmap.completedTiles);
+      navigate('/roadmap');
+    } else {
+      setShowOnboarding(true);
+    }
   };
 
   const handleOnboardingComplete = async (username: string, phone: string, language: string, topic: string) => {
     setShowOnboarding(false);
     if(user) {
-      setUser({ ...user, name: username, phone, language });
+      const updatedUser = { ...user, name: username, phone, language };
+      setUser(updatedUser);
+      await updateUserProfile(updatedUser);
     }
     setIsLoadingRoadmap(true);
     setRoadmapError('');
     setCurrentTopic(topic);
-    setCurrentPage('roadmap');
+    navigate('/roadmap');
 
     const map: Record<string, 'en'|'hi'|'ta'|'ml'> = { English: 'en', Hindi: 'hi', Tamil: 'ta', Malayalam: 'ml' } as const;
     const langCode = map[language] ?? 'en';
@@ -179,8 +203,16 @@ const App: React.FC = () => {
     }
   };
   
-  const logActivity = useCallback((timeSpent: number, tileCompleted: boolean) => {
+  const logActivity = useCallback(async (timeSpent: number, tileCompleted: boolean) => {
     const todayStr = new Date().toISOString().split('T')[0];
+    const newLogEntry = { date: todayStr, timeSpent, completed: tileCompleted };
+
+    try {
+      await logUserActivity(newLogEntry);
+    } catch(e) {
+      console.warn("Failed to log user activity", e);
+    }
+
     setActivityLog(prevLog => {
       const todayEntryIndex = prevLog.findIndex(entry => entry.date === todayStr);
       if (todayEntryIndex > -1) {
@@ -199,52 +231,41 @@ const App: React.FC = () => {
         const today = new Date();
         const yesterday = new Date();
         yesterday.setDate(today.getDate() - 1);
-        const todayStr = today.toISOString().split('T')[0];
         const yesterdayStr = yesterday.toISOString().split('T')[0];
 
         let newStreak = user.currentStreak;
-        if (user.lastActivityDate === todayStr) {
-            // Already completed a section today, no change
-        } else if (user.lastActivityDate === yesterdayStr) {
-            newStreak++; // Continued the streak
-        } else {
-            newStreak = 1; // Started a new streak
+        if (user.lastActivityDate !== todayStr) {
+          if (user.lastActivityDate === yesterdayStr) {
+              newStreak++;
+          } else {
+              newStreak = 1;
+          }
         }
         
         let newDiamonds = user.diamonds;
-        if (newStreak > 0 && newStreak % 7 === 0) {
-            newDiamonds += 20; // 7-day streak reward
+        if (newStreak > 0 && newStreak % 7 === 0 && user.currentStreak < newStreak) {
+            newDiamonds += 20;
         }
         
-        setUser(prevUser => prevUser ? {
-            ...prevUser,
+        const updatedUser = {
+            ...user,
             currentStreak: newStreak,
-            highestStreak: Math.max(prevUser.highestStreak, newStreak),
+            highestStreak: Math.max(user.highestStreak, newStreak),
             lastActivityDate: todayStr,
             diamonds: newDiamonds
-        } : null);
+        };
+        setUser(updatedUser);
+        try {
+          await updateUserProfile(updatedUser);
+        } catch(e) {
+          console.warn("Failed to update user profile", e);
+        }
     }
   }, [user]);
 
-  const handleGoHome = () => {
-    setCurrentPage('landing');
-  }
-
-  const handleGoToRoadmap = () => {
-    if (roadmapData) {
-      setCurrentPage('roadmap');
-    } else {
-      handleGoHome();
-    }
-  };
-  
   const handleSelectTile = (index: number) => {
     setSelectedTileIndex(index);
-    setCurrentPage('tileDetail');
-  }
-
-  const handleTakeQuiz = () => {
-    setCurrentPage('quiz');
+    navigate(`/roadmap/tile/${index}`);
   }
 
   const handleQuizComplete = (passed: boolean) => {
@@ -256,27 +277,22 @@ const App: React.FC = () => {
       
       const allCompleted = newCompletedTiles.every(t => t);
       if (allCompleted) {
-          setUser(prevUser => prevUser ? { ...prevUser, diamonds: prevUser.diamonds + 50 } : null);
+          const updatedUser = { ...user, diamonds: user.diamonds + 50 };
+          setUser(updatedUser);
+          updateUserProfile(updatedUser);
       }
     }
-    setCurrentPage('roadmap');
+    navigate('/roadmap');
   }
 
-  const handleViewProfile = () => {
-    setCurrentPage('profile');
-  }
-
-  const handleNavigateToCareer = () => {
-    setCurrentPage('career');
-  }
-  
-  const handleNavigateToCommunity = () => {
-    setCurrentPage('community');
-  }
-
-  const handleUpdateProfile = (updatedProfile: User) => {
+  const handleUpdateProfile = async (updatedProfile: User) => {
     setUser(updatedProfile);
-    setCurrentPage('roadmap');
+    try {
+      await updateUserProfile(updatedProfile);
+    } catch(e) {
+      console.warn("Failed to update profile", e);
+    }
+    navigate('/roadmap');
   }
 
   const handleApplyJob = (jobId: string) => {
@@ -301,130 +317,127 @@ const App: React.FC = () => {
       handleJoinGroup(newGroup.id);
   };
   
-  const handlePlayMiniGame = (tileIndex: number) => {
+  const handlePlayMiniGame = async (tileIndex: number) => {
       setSelectedTileIndex(tileIndex);
       setShowMiniGame(true);
   };
 
-  const handleMiniGameComplete = (won: boolean) => {
+  const handleMiniGameComplete = async (won: boolean) => {
       setShowMiniGame(false);
       if (user) {
+          let updatedUser = { ...user };
           if (user.miniGameAttempts >= 3) {
-            setUser(prevUser => prevUser ? { ...prevUser, diamonds: prevUser.diamonds - 20 } : null);
+            updatedUser.diamonds -= 20;
           }
-          setUser(prevUser => prevUser ? { ...prevUser, miniGameAttempts: prevUser.miniGameAttempts + 1 } : null);
-      }
-      if (won && selectedTileIndex !== null) {
-          // Unlock the next tile by marking the current (skipped) one as complete
-          const newCompletedTiles = [...completedTiles];
-          newCompletedTiles[selectedTileIndex] = true;
-          setCompletedTiles(newCompletedTiles);
+          updatedUser.miniGameAttempts += 1;
+
+          if (won && selectedTileIndex !== null) {
+              const newCompletedTiles = [...completedTiles];
+              newCompletedTiles[selectedTileIndex] = true;
+              setCompletedTiles(newCompletedTiles);
+          }
+          setUser(updatedUser);
+          try {
+            await updateUserProfile(updatedUser);
+          } catch(e) {
+            console.warn("Failed to update user after minigame", e);
+          }
       }
       setSelectedTileIndex(null);
   };
   
-  const handleBuyDiamonds = (amount: number) => {
+  const handleBuyDiamonds = async (amount: number) => {
     if (user) {
-        setUser(prevUser => prevUser ? { ...prevUser, diamonds: prevUser.diamonds + amount } : null);
+        const updatedUser = { ...user, diamonds: user.diamonds + amount };
+        setUser(updatedUser);
+        try {
+          await updateUserProfile(updatedUser);
+        } catch(e) {
+          console.warn("Failed to update diamonds", e);
+        }
     }
   };
 
+  if (!modalRoot) return null;
 
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'landing':
-        return <LandingPage onGetStartedClick={handleStartFreeClick} onProfileClick={handleViewProfile} onCareerClick={handleNavigateToCareer} onCommunityClick={handleNavigateToCommunity} isLoggedIn={isLoggedIn} user={user} />;
-      case 'roadmap':
-        return (
+  return (
+    <div className="bg-black text-white min-h-screen font-sans">
+      <Routes>
+        <Route path="/" element={<LandingPage onGetStartedClick={handleStartFreeClick} onProfileClick={() => navigate('/profile')} onCareerClick={() => navigate('/career')} onCommunityClick={() => navigate('/community')} isLoggedIn={isLoggedIn} user={user} />} />
+        <Route path="/roadmap" element={
           <RoadmapPage
             topic={currentTopic}
             roadmapData={roadmapData}
             furtherTopics={furtherTopics}
             isLoading={isLoadingRoadmap}
             error={roadmapError}
-            onGoHome={handleGoHome}
+            onGoHome={() => navigate('/')}
             onSelectTile={handleSelectTile}
             completedTiles={completedTiles}
-            onProfileClick={handleViewProfile}
-            onCareerClick={handleNavigateToCareer}
-            onCommunityClick={handleNavigateToCommunity}
+            onProfileClick={() => navigate('/profile')}
+            onCareerClick={() => navigate('/career')}
+            onCommunityClick={() => navigate('/community')}
             onPlayMiniGame={handlePlayMiniGame}
             miniGameAttempts={user?.miniGameAttempts ?? 0}
             userDiamonds={user?.diamonds ?? 0}
             user={user}
           />
-        );
-       case 'tileDetail':
-        if (selectedTileIndex !== null && roadmapData) {
-          return (
+        } />
+        <Route path="/roadmap/tile/:tileIndex" element={
+          selectedTileIndex !== null && roadmapData ? (
             <TileDetailPage 
               tile={roadmapData.tiles[selectedTileIndex]}
               tileNumber={selectedTileIndex + 1}
-              onTakeQuiz={handleTakeQuiz}
-              onBackToRoadmap={handleGoToRoadmap}
+              onTakeQuiz={() => navigate('/quiz')}
+              onBackToRoadmap={() => navigate('/roadmap')}
               onLogTime={logActivity}
             />
-          );
-        }
-        return null;
-      case 'quiz':
-         if (selectedTileIndex !== null && roadmapData) {
-          return (
+          ) : null
+        } />
+        <Route path="/video/:videoId" element={<VideoPage />} />
+        <Route path="/quiz" element={
+          selectedTileIndex !== null && roadmapData ? (
             <QuizPage
               tile={roadmapData.tiles[selectedTileIndex]}
               onQuizComplete={handleQuizComplete}
-              onBackToDetail={() => setCurrentPage('tileDetail')}
+              onBackToDetail={() => navigate(`/roadmap/tile/${selectedTileIndex}`)}
               onLogTime={logActivity}
             />
-          )
-         }
-         return null;
-      case 'profile':
-        if (user) {
-          return (
+          ) : null
+        } />
+        <Route path="/profile" element={
+          user ? (
             <ProfilePage 
               user={user}
               activityLog={activityLog}
-              onBack={handleGoToRoadmap}
+              onBack={() => navigate('/roadmap')}
               onUpdateProfile={handleUpdateProfile}
               appliedJobs={appliedJobs}
               onBuyDiamonds={handleBuyDiamonds}
             />
-          )
-        }
-        return null;
-       case 'career':
-          return (
-            <CareerPage 
-              onBack={handleGoToRoadmap} 
-              onCommunityClick={handleNavigateToCommunity}
-              availableJobs={availableJobs}
-              appliedJobs={appliedJobs}
-              onApplyJob={handleApplyJob}
-              user={user}
-            />
-          );
-       case 'community':
-          return (
-             <CommunityPage 
-                onBack={handleGoToRoadmap}
-                allGroups={allGroups}
-                joinedGroupIds={joinedGroupIds}
-                onJoinGroup={handleJoinGroup}
-                onCreateGroup={handleCreateGroup}
-                user={user}
-             />
-          );
-      default:
-        return <LandingPage onGetStartedClick={handleStartFreeClick} onProfileClick={handleViewProfile} onCareerClick={handleNavigateToCareer} onCommunityClick={handleNavigateToCommunity} isLoggedIn={isLoggedIn} user={user} />;
-    }
-  }
-
-  if (!modalRoot) return null; // Or a loading/error state if the root isn't found
-
-  return (
-    <div className="bg-black text-white min-h-screen font-sans">
-      {renderCurrentPage()}
+          ) : null
+        } />
+        <Route path="/career" element={
+          <CareerPage
+            onBack={() => navigate('/roadmap')}
+            onCommunityClick={() => navigate('/community')}
+            availableJobs={availableJobs}
+            appliedJobs={appliedJobs}
+            onApplyJob={handleApplyJob}
+            user={user}
+          />
+        } />
+        <Route path="/community" element={
+          <CommunityPage
+             onBack={() => navigate('/roadmap')}
+             allGroups={allGroups}
+             joinedGroupIds={joinedGroupIds}
+             onJoinGroup={handleJoinGroup}
+             onCreateGroup={handleCreateGroup}
+             user={user}
+          />
+        } />
+      </Routes>
       
       {showAuthModal && ReactDOM.createPortal(
         <LoginModal onClose={() => setShowAuthModal(false)} onSuccess={handleAuthSuccess} />,
@@ -439,7 +452,7 @@ const App: React.FC = () => {
         modalRoot
       )}
       
-      {isLoggedIn && !['landing', 'quiz', 'tileDetail'].includes(currentPage) && ReactDOM.createPortal(
+      {isLoggedIn && !['/', '/quiz'].includes(location.pathname) && !location.pathname.startsWith('/roadmap/tile/') && !location.pathname.startsWith('/video/') && ReactDOM.createPortal(
          <button 
            onClick={() => setShowVoiceOrb(true)}
            className="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 rounded-full shadow-lg shadow-blue-500/50 flex items-center justify-center text-white hover:bg-blue-700 transition-all duration-300 transform hover:scale-110 z-50"
@@ -458,4 +471,10 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+const AppWrapper: React.FC = () => (
+  <Router>
+    <App />
+  </Router>
+);
+
+export default AppWrapper;
