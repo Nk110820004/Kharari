@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
+          'react-player/youtube': 'react-player/lib/players/YouTube',
         }
       }
     };
