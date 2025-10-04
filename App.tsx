@@ -531,7 +531,11 @@ const App: React.FC = () => {
       </Routes>
       
       {showAuthModal && ReactDOM.createPortal(
-        <LoginModal onClose={() => setShowAuthModal(false)} onSuccess={handleAuthSuccess} />,
+        <LoginModal
+          onClose={handleCloseAuthModal}
+          onSuccess={handleAuthSuccess}
+          initialMode={location.pathname === '/login' ? 'login' : 'signup'}
+        />,
         modalRoot
       )}
       {showOnboarding && user && ReactDOM.createPortal(
