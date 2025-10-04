@@ -34,10 +34,10 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const RoadmapPage: React.FC<RoadmapPageProps> = ({ 
-    topic, roadmapData, furtherTopics, isLoading, error, onGoHome, onSelectTile, 
-    completedTiles, onProfileClick, onCareerClick, onCommunityClick, 
-    onPlayMiniGame, miniGameAttempts, userDiamonds, user
+const RoadmapPage: React.FC<RoadmapPageProps> = ({
+    topic, roadmapData, furtherTopics, isLoading, error, onGoHome, onSelectTile,
+    completedTiles, onProfileClick, onCareerClick, onCommunityClick,
+    onPlayMiniGame, miniGameAttempts, userDiamonds, user, onStartOnboarding, onRequireAuth, isLoggedIn
 }) => {
   return (
     <div className="min-h-screen bg-black">
