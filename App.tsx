@@ -288,22 +288,30 @@ const App: React.FC = () => {
     navigate(`/roadmap/tile/${index}`);
   }
 
-  const handleQuizComplete = (passed: boolean) => {
-    if (passed && selectedTileIndex !== null && user) {
+  const handleQuizComplete = (tileIndex: number, passed: boolean) => {
+    if (!roadmapData || Number.isNaN(tileIndex) || tileIndex < 0 || tileIndex >= roadmapData.tiles.length) {
+      setSelectedTileIndex(null);
+      navigate('/roadmap');
+      return;
+    }
+
+    if (passed && user) {
       const newCompletedTiles = [...completedTiles];
-      newCompletedTiles[selectedTileIndex] = true;
+      newCompletedTiles[tileIndex] = true;
       setCompletedTiles(newCompletedTiles);
       logActivity(0, true);
-      
+
       const allCompleted = newCompletedTiles.every(t => t);
       if (allCompleted) {
-          const updatedUser = { ...user, diamonds: user.diamonds + 50 };
-          setUser(updatedUser);
-          updateUserProfile(updatedUser);
+        const updatedUser = { ...user, diamonds: user.diamonds + 50 };
+        setUser(updatedUser);
+        updateUserProfile(updatedUser);
       }
     }
+
+    setSelectedTileIndex(null);
     navigate('/roadmap');
-  }
+  };
 
   const handleUpdateProfile = async (updatedProfile: User) => {
     setUser(updatedProfile);
