@@ -19,6 +19,8 @@ import MemoryGame from './components/minigame/MemoryGame';
 import VideoPage from './components/pages/VideoPage';
 import { getUserProfile, updateUserProfile, logUserActivity } from './lib/userStorage';
 
+const AUTH_ROUTES = ['/login', '/signup'];
+
 export interface User {
   name: string;
   bio: string;
