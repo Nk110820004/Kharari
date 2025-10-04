@@ -386,6 +386,68 @@ const App: React.FC = () => {
     }
   };
 
+  const landingPageElement = (
+    <LandingPage
+      onGetStartedClick={handleStartFreeClick}
+      onProfileClick={() => navigate('/profile')}
+      onCareerClick={() => navigate('/career')}
+      onCommunityClick={() => navigate('/community')}
+      isLoggedIn={isLoggedIn}
+      user={user}
+    />
+  );
+
+  const TileDetailRoute: React.FC = () => {
+    const { tileIndex } = useParams<{ tileIndex: string }>();
+    const index = Number(tileIndex);
+    const hasTile = Boolean(roadmapData) && !Number.isNaN(index) && index >= 0 && roadmapData!.tiles.length > index;
+
+    useEffect(() => {
+      if (hasTile) {
+        setSelectedTileIndex(index);
+      }
+    }, [hasTile, index]);
+
+    if (!hasTile || !roadmapData) {
+      return <Navigate to="/roadmap" replace />;
+    }
+
+    return (
+      <TileDetailPage
+        tile={roadmapData.tiles[index]}
+        tileNumber={index + 1}
+        onTakeQuiz={() => navigate(`/roadmap/tile/${index}/quiz`)}
+        onBackToRoadmap={() => navigate('/roadmap')}
+        onLogTime={logActivity}
+      />
+    );
+  };
+
+  const QuizRoute: React.FC = () => {
+    const { tileIndex } = useParams<{ tileIndex: string }>();
+    const index = Number(tileIndex);
+    const hasTile = Boolean(roadmapData) && !Number.isNaN(index) && index >= 0 && roadmapData!.tiles.length > index;
+
+    useEffect(() => {
+      if (hasTile) {
+        setSelectedTileIndex(index);
+      }
+    }, [hasTile, index]);
+
+    if (!hasTile || !roadmapData) {
+      return <Navigate to="/roadmap" replace />;
+    }
+
+    return (
+      <QuizPage
+        tile={roadmapData.tiles[index]}
+        onQuizComplete={(passed) => handleQuizComplete(index, passed)}
+        onBackToDetail={() => navigate(`/roadmap/tile/${index}`)}
+        onLogTime={logActivity}
+      />
+    );
+  };
+
   if (!modalRoot) return null;
 
   return (
