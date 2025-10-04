@@ -74,6 +74,19 @@ const App: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
+    if (AUTH_ROUTES.includes(location.pathname)) {
+      setShowAuthModal(true);
+    }
+  }, [location.pathname]);
+
+  const handleCloseAuthModal = () => {
+    setShowAuthModal(false);
+    if (AUTH_ROUTES.includes(location.pathname)) {
+      navigate('/');
+    }
+  };
+
+  useEffect(() => {
     (async () => {
       const { supabase } = await import('./lib/supabaseClient');
       const { getRoadmap } = await import('./lib/roadmapStorage');
