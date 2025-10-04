@@ -453,80 +453,81 @@ const App: React.FC = () => {
   return (
     <div className="bg-black text-white min-h-screen font-sans">
       <Routes>
-        <Route path="/" element={<LandingPage onGetStartedClick={handleStartFreeClick} onProfileClick={() => navigate('/profile')} onCareerClick={() => navigate('/career')} onCommunityClick={() => navigate('/community')} isLoggedIn={isLoggedIn} user={user} />} />
-        <Route path="/roadmap" element={
-          <RoadmapPage
-            topic={currentTopic}
-            roadmapData={roadmapData}
-            furtherTopics={furtherTopics}
-            isLoading={isLoadingRoadmap}
-            error={roadmapError}
-            onGoHome={() => navigate('/')}
-            onSelectTile={handleSelectTile}
-            completedTiles={completedTiles}
-            onProfileClick={() => navigate('/profile')}
-            onCareerClick={() => navigate('/career')}
-            onCommunityClick={() => navigate('/community')}
-            onPlayMiniGame={handlePlayMiniGame}
-            miniGameAttempts={user?.miniGameAttempts ?? 0}
-            userDiamonds={user?.diamonds ?? 0}
-            user={user}
-          />
-        } />
-        <Route path="/roadmap/tile/:tileIndex" element={
-          selectedTileIndex !== null && roadmapData ? (
-            <TileDetailPage 
-              tile={roadmapData.tiles[selectedTileIndex]}
-              tileNumber={selectedTileIndex + 1}
-              onTakeQuiz={() => navigate('/quiz')}
-              onBackToRoadmap={() => navigate('/roadmap')}
-              onLogTime={logActivity}
-            />
-          ) : null
-        } />
-        <Route path="/video/:videoId" element={<VideoPage />} />
-        <Route path="/quiz" element={
-          selectedTileIndex !== null && roadmapData ? (
-            <QuizPage
-              tile={roadmapData.tiles[selectedTileIndex]}
-              onQuizComplete={handleQuizComplete}
-              onBackToDetail={() => navigate(`/roadmap/tile/${selectedTileIndex}`)}
-              onLogTime={logActivity}
-            />
-          ) : null
-        } />
-        <Route path="/profile" element={
-          user ? (
-            <ProfilePage 
+        <Route path="/" element={landingPageElement} />
+        <Route path="/login" element={landingPageElement} />
+        <Route path="/signup" element={landingPageElement} />
+        <Route
+          path="/roadmap"
+          element={
+            <RoadmapPage
+              topic={currentTopic}
+              roadmapData={roadmapData}
+              furtherTopics={furtherTopics}
+              isLoading={isLoadingRoadmap}
+              error={roadmapError}
+              onGoHome={() => navigate('/')}
+              onSelectTile={handleSelectTile}
+              completedTiles={completedTiles}
+              onProfileClick={() => navigate('/profile')}
+              onCareerClick={() => navigate('/career')}
+              onCommunityClick={() => navigate('/community')}
+              onPlayMiniGame={handlePlayMiniGame}
+              miniGameAttempts={user?.miniGameAttempts ?? 0}
+              userDiamonds={user?.diamonds ?? 0}
               user={user}
-              activityLog={activityLog}
-              onBack={() => navigate('/roadmap')}
-              onUpdateProfile={handleUpdateProfile}
-              appliedJobs={appliedJobs}
-              onBuyDiamonds={handleBuyDiamonds}
+              onStartOnboarding={() => setShowOnboarding(true)}
+              onRequireAuth={() => navigate('/login')}
+              isLoggedIn={isLoggedIn}
             />
-          ) : null
-        } />
-        <Route path="/career" element={
-          <CareerPage
-            onBack={() => navigate('/roadmap')}
-            onCommunityClick={() => navigate('/community')}
-            availableJobs={availableJobs}
-            appliedJobs={appliedJobs}
-            onApplyJob={handleApplyJob}
-            user={user}
-          />
-        } />
-        <Route path="/community" element={
-          <CommunityPage
-             onBack={() => navigate('/roadmap')}
-             allGroups={allGroups}
-             joinedGroupIds={joinedGroupIds}
-             onJoinGroup={handleJoinGroup}
-             onCreateGroup={handleCreateGroup}
-             user={user}
-          />
-        } />
+          }
+        />
+        <Route path="/roadmap/tile/:tileIndex" element={<TileDetailRoute />} />
+        <Route path="/roadmap/tile/:tileIndex/quiz" element={<QuizRoute />} />
+        <Route path="/video/:videoId" element={<VideoPage />} />
+        <Route
+          path="/profile"
+          element={
+            user ? (
+              <ProfilePage
+                user={user}
+                activityLog={activityLog}
+                onBack={() => navigate('/roadmap')}
+                onUpdateProfile={handleUpdateProfile}
+                appliedJobs={appliedJobs}
+                onBuyDiamonds={handleBuyDiamonds}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/career"
+          element={
+            <CareerPage
+              onBack={() => navigate('/roadmap')}
+              onCommunityClick={() => navigate('/community')}
+              availableJobs={availableJobs}
+              appliedJobs={appliedJobs}
+              onApplyJob={handleApplyJob}
+              user={user}
+            />
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <CommunityPage
+              onBack={() => navigate('/roadmap')}
+              allGroups={allGroups}
+              joinedGroupIds={joinedGroupIds}
+              onJoinGroup={handleJoinGroup}
+              onCreateGroup={handleCreateGroup}
+              user={user}
+            />
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       
       {showAuthModal && ReactDOM.createPortal(
