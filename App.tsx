@@ -207,6 +207,7 @@ const App: React.FC = () => {
         generateFurtherTopics(topic)
       ]);
       setRoadmapData(data);
+      setCompletedTiles(new Array(data.tiles.length).fill(false));
       setFurtherTopics(furtherData.suggestions);
       try {
         const { persistRoadmap } = await import('./lib/roadmapStorage');
