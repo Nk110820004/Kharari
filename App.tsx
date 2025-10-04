@@ -165,7 +165,7 @@ const App: React.FC = () => {
   }, [roadmapData]);
 
   const handleStartFreeClick = () => {
-    setShowAuthModal(true);
+    navigate('/signup');
   };
 
   const handleAuthSuccess = async () => {
