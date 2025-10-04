@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 import LandingPage from './components/pages/LandingPage';
 import RoadmapPage from './components/pages/RoadmapPage';
 import LoginModal from './components/auth/LoginModal';
@@ -18,6 +18,8 @@ import { initialGroups, StudyGroup } from './data/groups';
 import MemoryGame from './components/minigame/MemoryGame';
 import VideoPage from './components/pages/VideoPage';
 import { getUserProfile, updateUserProfile, logUserActivity } from './lib/userStorage';
+
+const AUTH_ROUTES = ['/login', '/signup'];
 
 export interface User {
   name: string;
@@ -70,6 +72,24 @@ const App: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (!AUTH_ROUTES.includes(location.pathname)) {
+      return;
+    }
+    if (isLoggedIn) {
+      navigate('/roadmap', { replace: true });
+      return;
+    }
+    setShowAuthModal(true);
+  }, [isLoggedIn, location.pathname, navigate]);
+
+  const handleCloseAuthModal = () => {
+    setShowAuthModal(false);
+    if (AUTH_ROUTES.includes(location.pathname)) {
+      navigate('/');
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -141,16 +161,20 @@ const App: React.FC = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (roadmapData) {
-      setCompletedTiles(new Array(roadmapData.tiles.length).fill(false));
-      if (user) {
-        setUser(prevUser => prevUser ? { ...prevUser, miniGameAttempts: 0 } : null);
-      }
+    if (!roadmapData) {
+      return;
     }
+    setSelectedTileIndex(null);
+    setUser(prevUser => {
+      if (!prevUser) {
+        return prevUser;
+      }
+      return { ...prevUser, miniGameAttempts: 0 };
+    });
   }, [roadmapData]);
 
   const handleStartFreeClick = () => {
-    setShowAuthModal(true);
+    navigate('/signup');
   };
 
   const handleAuthSuccess = async () => {
@@ -188,6 +212,7 @@ const App: React.FC = () => {
         generateFurtherTopics(topic)
       ]);
       setRoadmapData(data);
+      setCompletedTiles(new Array(data.tiles.length).fill(false));
       setFurtherTopics(furtherData.suggestions);
       try {
         const { persistRoadmap } = await import('./lib/roadmapStorage');
@@ -268,22 +293,30 @@ const App: React.FC = () => {
     navigate(`/roadmap/tile/${index}`);
   }
 
-  const handleQuizComplete = (passed: boolean) => {
-    if (passed && selectedTileIndex !== null && user) {
+  const handleQuizComplete = (tileIndex: number, passed: boolean) => {
+    if (!roadmapData || Number.isNaN(tileIndex) || tileIndex < 0 || tileIndex >= roadmapData.tiles.length) {
+      setSelectedTileIndex(null);
+      navigate('/roadmap');
+      return;
+    }
+
+    if (passed && user) {
       const newCompletedTiles = [...completedTiles];
-      newCompletedTiles[selectedTileIndex] = true;
+      newCompletedTiles[tileIndex] = true;
       setCompletedTiles(newCompletedTiles);
       logActivity(0, true);
-      
+
       const allCompleted = newCompletedTiles.every(t => t);
       if (allCompleted) {
-          const updatedUser = { ...user, diamonds: user.diamonds + 50 };
-          setUser(updatedUser);
-          updateUserProfile(updatedUser);
+        const updatedUser = { ...user, diamonds: user.diamonds + 50 };
+        setUser(updatedUser);
+        updateUserProfile(updatedUser);
       }
     }
+
+    setSelectedTileIndex(null);
     navigate('/roadmap');
-  }
+  };
 
   const handleUpdateProfile = async (updatedProfile: User) => {
     setUser(updatedProfile);
@@ -358,89 +391,156 @@ const App: React.FC = () => {
     }
   };
 
+  const landingPageElement = (
+    <LandingPage
+      onGetStartedClick={handleStartFreeClick}
+      onProfileClick={() => navigate('/profile')}
+      onCareerClick={() => navigate('/career')}
+      onCommunityClick={() => navigate('/community')}
+      isLoggedIn={isLoggedIn}
+      user={user}
+    />
+  );
+
+  const TileDetailRoute: React.FC = () => {
+    const { tileIndex } = useParams<{ tileIndex: string }>();
+    const index = Number(tileIndex);
+    const hasTile = Boolean(roadmapData) && !Number.isNaN(index) && index >= 0 && roadmapData!.tiles.length > index;
+
+    useEffect(() => {
+      if (hasTile) {
+        setSelectedTileIndex(index);
+      }
+    }, [hasTile, index]);
+
+    if (!hasTile || !roadmapData) {
+      return <Navigate to="/roadmap" replace />;
+    }
+
+    return (
+      <TileDetailPage
+        tile={roadmapData.tiles[index]}
+        tileNumber={index + 1}
+        onTakeQuiz={() => navigate(`/roadmap/tile/${index}/quiz`)}
+        onBackToRoadmap={() => navigate('/roadmap')}
+        onLogTime={logActivity}
+      />
+    );
+  };
+
+  const QuizRoute: React.FC = () => {
+    const { tileIndex } = useParams<{ tileIndex: string }>();
+    const index = Number(tileIndex);
+    const hasTile = Boolean(roadmapData) && !Number.isNaN(index) && index >= 0 && roadmapData!.tiles.length > index;
+
+    useEffect(() => {
+      if (hasTile) {
+        setSelectedTileIndex(index);
+      }
+    }, [hasTile, index]);
+
+    if (!hasTile || !roadmapData) {
+      return <Navigate to="/roadmap" replace />;
+    }
+
+    return (
+      <QuizPage
+        tile={roadmapData.tiles[index]}
+        onQuizComplete={(passed) => handleQuizComplete(index, passed)}
+        onBackToDetail={() => navigate(`/roadmap/tile/${index}`)}
+        onLogTime={logActivity}
+      />
+    );
+  };
+
   if (!modalRoot) return null;
 
   return (
     <div className="bg-black text-white min-h-screen font-sans">
       <Routes>
-        <Route path="/" element={<LandingPage onGetStartedClick={handleStartFreeClick} onProfileClick={() => navigate('/profile')} onCareerClick={() => navigate('/career')} onCommunityClick={() => navigate('/community')} isLoggedIn={isLoggedIn} user={user} />} />
-        <Route path="/roadmap" element={
-          <RoadmapPage
-            topic={currentTopic}
-            roadmapData={roadmapData}
-            furtherTopics={furtherTopics}
-            isLoading={isLoadingRoadmap}
-            error={roadmapError}
-            onGoHome={() => navigate('/')}
-            onSelectTile={handleSelectTile}
-            completedTiles={completedTiles}
-            onProfileClick={() => navigate('/profile')}
-            onCareerClick={() => navigate('/career')}
-            onCommunityClick={() => navigate('/community')}
-            onPlayMiniGame={handlePlayMiniGame}
-            miniGameAttempts={user?.miniGameAttempts ?? 0}
-            userDiamonds={user?.diamonds ?? 0}
-            user={user}
-          />
-        } />
-        <Route path="/roadmap/tile/:tileIndex" element={
-          selectedTileIndex !== null && roadmapData ? (
-            <TileDetailPage 
-              tile={roadmapData.tiles[selectedTileIndex]}
-              tileNumber={selectedTileIndex + 1}
-              onTakeQuiz={() => navigate('/quiz')}
-              onBackToRoadmap={() => navigate('/roadmap')}
-              onLogTime={logActivity}
-            />
-          ) : null
-        } />
-        <Route path="/video/:videoId" element={<VideoPage />} />
-        <Route path="/quiz" element={
-          selectedTileIndex !== null && roadmapData ? (
-            <QuizPage
-              tile={roadmapData.tiles[selectedTileIndex]}
-              onQuizComplete={handleQuizComplete}
-              onBackToDetail={() => navigate(`/roadmap/tile/${selectedTileIndex}`)}
-              onLogTime={logActivity}
-            />
-          ) : null
-        } />
-        <Route path="/profile" element={
-          user ? (
-            <ProfilePage 
+        <Route path="/" element={landingPageElement} />
+        <Route path="/login" element={landingPageElement} />
+        <Route path="/signup" element={landingPageElement} />
+        <Route
+          path="/roadmap"
+          element={
+            <RoadmapPage
+              topic={currentTopic}
+              roadmapData={roadmapData}
+              furtherTopics={furtherTopics}
+              isLoading={isLoadingRoadmap}
+              error={roadmapError}
+              onGoHome={() => navigate('/')}
+              onSelectTile={handleSelectTile}
+              completedTiles={completedTiles}
+              onProfileClick={() => navigate('/profile')}
+              onCareerClick={() => navigate('/career')}
+              onCommunityClick={() => navigate('/community')}
+              onPlayMiniGame={handlePlayMiniGame}
+              miniGameAttempts={user?.miniGameAttempts ?? 0}
+              userDiamonds={user?.diamonds ?? 0}
               user={user}
-              activityLog={activityLog}
-              onBack={() => navigate('/roadmap')}
-              onUpdateProfile={handleUpdateProfile}
-              appliedJobs={appliedJobs}
-              onBuyDiamonds={handleBuyDiamonds}
+              onStartOnboarding={() => setShowOnboarding(true)}
+              onRequireAuth={() => navigate('/login')}
+              isLoggedIn={isLoggedIn}
             />
-          ) : null
-        } />
-        <Route path="/career" element={
-          <CareerPage
-            onBack={() => navigate('/roadmap')}
-            onCommunityClick={() => navigate('/community')}
-            availableJobs={availableJobs}
-            appliedJobs={appliedJobs}
-            onApplyJob={handleApplyJob}
-            user={user}
-          />
-        } />
-        <Route path="/community" element={
-          <CommunityPage
-             onBack={() => navigate('/roadmap')}
-             allGroups={allGroups}
-             joinedGroupIds={joinedGroupIds}
-             onJoinGroup={handleJoinGroup}
-             onCreateGroup={handleCreateGroup}
-             user={user}
-          />
-        } />
+          }
+        />
+        <Route path="/roadmap/tile/:tileIndex" element={<TileDetailRoute />} />
+        <Route path="/roadmap/tile/:tileIndex/quiz" element={<QuizRoute />} />
+        <Route path="/video/:videoId" element={<VideoPage />} />
+        <Route
+          path="/profile"
+          element={
+            user ? (
+              <ProfilePage
+                user={user}
+                activityLog={activityLog}
+                onBack={() => navigate('/roadmap')}
+                onUpdateProfile={handleUpdateProfile}
+                appliedJobs={appliedJobs}
+                onBuyDiamonds={handleBuyDiamonds}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/career"
+          element={
+            <CareerPage
+              onBack={() => navigate('/roadmap')}
+              onCommunityClick={() => navigate('/community')}
+              availableJobs={availableJobs}
+              appliedJobs={appliedJobs}
+              onApplyJob={handleApplyJob}
+              user={user}
+            />
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <CommunityPage
+              onBack={() => navigate('/roadmap')}
+              allGroups={allGroups}
+              joinedGroupIds={joinedGroupIds}
+              onJoinGroup={handleJoinGroup}
+              onCreateGroup={handleCreateGroup}
+              user={user}
+            />
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       
       {showAuthModal && ReactDOM.createPortal(
-        <LoginModal onClose={() => setShowAuthModal(false)} onSuccess={handleAuthSuccess} />,
+        <LoginModal
+          onClose={handleCloseAuthModal}
+          onSuccess={handleAuthSuccess}
+          initialMode={location.pathname === '/login' ? 'login' : 'signup'}
+        />,
         modalRoot
       )}
       {showOnboarding && user && ReactDOM.createPortal(
@@ -452,7 +552,7 @@ const App: React.FC = () => {
         modalRoot
       )}
       
-      {isLoggedIn && !['/', '/quiz'].includes(location.pathname) && !location.pathname.startsWith('/roadmap/tile/') && !location.pathname.startsWith('/video/') && ReactDOM.createPortal(
+      {isLoggedIn && location.pathname !== '/' && !location.pathname.startsWith('/roadmap/tile/') && !location.pathname.startsWith('/video/') && ReactDOM.createPortal(
          <button 
            onClick={() => setShowVoiceOrb(true)}
            className="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 rounded-full shadow-lg shadow-blue-500/50 flex items-center justify-center text-white hover:bg-blue-700 transition-all duration-300 transform hover:scale-110 z-50"

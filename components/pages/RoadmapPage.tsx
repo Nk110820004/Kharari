@@ -21,6 +21,9 @@ interface RoadmapPageProps {
   miniGameAttempts: number;
   userDiamonds: number;
   user: UserType | null;
+  onStartOnboarding: () => void;
+  onRequireAuth: () => void;
+  isLoggedIn: boolean;
 }
 
 const LoadingSpinner = () => (
@@ -31,10 +34,10 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const RoadmapPage: React.FC<RoadmapPageProps> = ({ 
-    topic, roadmapData, furtherTopics, isLoading, error, onGoHome, onSelectTile, 
-    completedTiles, onProfileClick, onCareerClick, onCommunityClick, 
-    onPlayMiniGame, miniGameAttempts, userDiamonds, user
+const RoadmapPage: React.FC<RoadmapPageProps> = ({
+    topic, roadmapData, furtherTopics, isLoading, error, onGoHome, onSelectTile,
+    completedTiles, onProfileClick, onCareerClick, onCommunityClick,
+    onPlayMiniGame, miniGameAttempts, userDiamonds, user, onStartOnboarding, onRequireAuth, isLoggedIn
 }) => {
   return (
     <div className="min-h-screen bg-black">
@@ -78,6 +81,52 @@ const RoadmapPage: React.FC<RoadmapPageProps> = ({
             <p>{error}</p>
             <button onClick={onGoHome} className="mt-6 px-6 py-2 bg-blue-600 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Try again</button>
         </div>}
+
+        {!roadmapData && !isLoading && !error && (
+          <div className="min-h-[60vh] flex flex-col items-center justify-center text-center gap-6">
+            <div className="space-y-3">
+              <h2 className="text-3xl md:text-4xl font-bold text-white">Build your personalized roadmap</h2>
+              <p className="text-neutral-300 max-w-xl">
+                {isLoggedIn
+                  ? 'You have not generated a roadmap yet. Choose a topic to get started.'
+                  : 'Sign in to craft a personalized learning roadmap tailored to your goals.'}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              {isLoggedIn ? (
+                <>
+                  <button
+                    onClick={onStartOnboarding}
+                    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Create a roadmap
+                  </button>
+                  <button
+                    onClick={onGoHome}
+                    className="px-6 py-3 bg-neutral-900 border border-neutral-700 text-neutral-200 font-semibold rounded-lg hover:bg-neutral-800 transition-colors"
+                  >
+                    Back to home
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={onRequireAuth}
+                    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Sign in to continue
+                  </button>
+                  <button
+                    onClick={onGoHome}
+                    className="px-6 py-3 bg-neutral-900 border border-neutral-700 text-neutral-200 font-semibold rounded-lg hover:bg-neutral-800 transition-colors"
+                  >
+                    Explore features
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {roadmapData && !isLoading && !error && (
           <>

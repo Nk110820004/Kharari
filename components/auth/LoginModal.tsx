@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Phone, User, Lock } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -7,11 +7,17 @@ import CountryCodeSelector from './CountryCodeSelector';
 interface LoginModalProps {
   onClose: () => void;
   onSuccess: () => void;
+  initialMode?: 'login' | 'signup';
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ onClose, onSuccess }) => {
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
+const LoginModal: React.FC<LoginModalProps> = ({ onClose, onSuccess, initialMode = 'signup' }) => {
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>(initialMode);
   const [activeTab, setActiveTab] = useState<'email' | 'phone'>('email');
+
+  useEffect(() => {
+    setAuthMode(initialMode);
+    setActiveTab('email');
+  }, [initialMode]);
 
   return (
     <AnimatePresence>
