@@ -74,10 +74,15 @@ const App: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (AUTH_ROUTES.includes(location.pathname)) {
-      setShowAuthModal(true);
+    if (!AUTH_ROUTES.includes(location.pathname)) {
+      return;
     }
-  }, [location.pathname]);
+    if (isLoggedIn) {
+      navigate('/roadmap', { replace: true });
+      return;
+    }
+    setShowAuthModal(true);
+  }, [isLoggedIn, location.pathname, navigate]);
 
   const handleCloseAuthModal = () => {
     setShowAuthModal(false);
