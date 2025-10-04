@@ -547,7 +547,7 @@ const App: React.FC = () => {
         modalRoot
       )}
       
-      {isLoggedIn && !['/', '/quiz'].includes(location.pathname) && !location.pathname.startsWith('/roadmap/tile/') && !location.pathname.startsWith('/video/') && ReactDOM.createPortal(
+      {isLoggedIn && location.pathname !== '/' && !location.pathname.startsWith('/roadmap/tile/') && !location.pathname.startsWith('/video/') && ReactDOM.createPortal(
          <button 
            onClick={() => setShowVoiceOrb(true)}
            className="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 rounded-full shadow-lg shadow-blue-500/50 flex items-center justify-center text-white hover:bg-blue-700 transition-all duration-300 transform hover:scale-110 z-50"
