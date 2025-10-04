@@ -21,6 +21,9 @@ interface RoadmapPageProps {
   miniGameAttempts: number;
   userDiamonds: number;
   user: UserType | null;
+  onStartOnboarding: () => void;
+  onRequireAuth: () => void;
+  isLoggedIn: boolean;
 }
 
 const LoadingSpinner = () => (
