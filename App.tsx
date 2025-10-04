@@ -156,12 +156,16 @@ const App: React.FC = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (roadmapData) {
-      setCompletedTiles(new Array(roadmapData.tiles.length).fill(false));
-      if (user) {
-        setUser(prevUser => prevUser ? { ...prevUser, miniGameAttempts: 0 } : null);
-      }
+    if (!roadmapData) {
+      return;
     }
+    setSelectedTileIndex(null);
+    setUser(prevUser => {
+      if (!prevUser) {
+        return prevUser;
+      }
+      return { ...prevUser, miniGameAttempts: 0 };
+    });
   }, [roadmapData]);
 
   const handleStartFreeClick = () => {
